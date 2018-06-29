@@ -20,5 +20,13 @@
     "nodemon": "^1.10.2",
     "supertest": "^2.0.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lilianacandrea/node-course-2-todo-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lilianacandrea/node-course-2-todo-api/issues"
+  },
+  "homepage": "https://github.com/lilianacandrea/node-course-2-todo-api#readme",
   "description": ""
 }
