@@ -1,3 +1,5 @@
+//install: mocha, supertest, nodemon, expect for testing
+
 const expect = require('expect');
 const request = require('supertest');
 
@@ -23,7 +25,7 @@ describe('POST /todos', () => {
         expect(res.body.text).toBe(text);
       })
       .end((err, res) => {
-        if(err){
+        if (err) {
           return done(err);
         }
 
@@ -34,6 +36,7 @@ describe('POST /todos', () => {
         }).catch((e) => done(e));
       });
   });
+
 
   //second test case: verifica daca todo nu se creaza atunci cand trimitem bad data.
   it('should not create todo with invalid body data', (done) => {

@@ -1,7 +1,7 @@
 //POSTMAN let you create HTTP request and fire them off. Intalnit peste tot!!
  //folosit ptr.a face postback la toate requesturile din aplicatie.
 
- const mongoose = require('mongoose');
+var mongoose = require('mongoose');
 
  //connect to database
  mongoose.Promise = global.Promise;

@@ -1,7 +1,5 @@
 var mongoose = require('mongoose');
-//Challenge
-//User
-//email - require it - trim interval - set type - set min length of 1
+
 var User = mongoose.model('User', {
   email: {
     type: String,
