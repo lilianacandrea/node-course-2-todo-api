@@ -1,6 +1,8 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 
+const {ObjectID} = require('mongodb');
+
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
@@ -32,6 +34,33 @@ app.get('/todos', (req, res) => {
   })
 });
 
+//getting an individual route (resourse) - GET/todos/:id
+//URL direction : ":id"; si folosesti req nu res ca in celelalte cazuri.
+app.get('/todos/:id', (req, res) => {
+  var id = req.params.id;
+  
+//valid id using isValid
+//404 - send back an empty body
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+//find by id
+  //success
+    //if todo - sned it back
+    //if no todo - send back 404 with empty body
+  Todo.findById(id).then((todo) => {
+    if(!todo) {
+      return res.status(404).send();
+    }
+
+    res.send({todo});
+//error
+//400 -and send empty body back
+  }).catch((e) => {
+    res.status(400).send();
+  });
+});
 
 app.listen(3000, () => {
   console.log('Started on port 3000');
