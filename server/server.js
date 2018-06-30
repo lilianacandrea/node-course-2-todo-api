@@ -1,6 +1,6 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-
+const _ = require('lodash');
+const express = require('express');
+const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 
 var {mongoose} = require('./db/mongoose');
@@ -63,7 +63,7 @@ app.get('/todos/:id', (req, res) => {
   });
 });
 
-//DELETE Request
+// DELETE Request
 // delete a todo object.
   // get the id
   // validate the id -> not valid? return 404
@@ -71,7 +71,7 @@ app.get('/todos/:id', (req, res) => {
     // success
       // if no doc, send 404
       // if doc, send doc back with 200
-    //error
+    // error
       // 400 with empty body
 
 app.delete('/todos/:id', (req, res) => {
@@ -90,6 +90,43 @@ app.delete('/todos/:id', (req, res) => {
   }).catch((e) => {
     res.status(400).send();
   });
+});
+
+// PATCH - use to update tod items
+app.patch('/todos/:id', (req, res) => {
+  var id = req.params.id;
+  // use lodash: pick
+  //body has a subset of things that users passed to us. We don't want the user to be able to update anything they choose.
+  var body = _.pick(req.body, ['text', 'completed']);
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  //update the completedAt property based of the completed property
+
+  // checking the completed value and using that value to set completedAt.
+  // If a user is setting a todo's completed property to TRUE, we want to set completed that to a time stamp.
+  // If they're setting it to FALSE we want to clear that time stamp because that won't be completed.
+  // getTime() return a JS time stamp.
+  if (_.isBoolean(body.completed) && body.completed) {
+    body.completedAt = new Date().getTime();
+  } else {
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  //We make our call to find by id and update with these three steps we are able to successfully update our todos when we make the patch call.
+  //new (din mongoose) similar cu returnOriginal (mongoDB)
+   Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+     if (!todo) {
+       return res.status(404).send();
+     }
+
+     res.send({todo});
+   }).catch((e) => {
+     res.status(400).send();
+   });
 });
 
 app.listen(port, () => {
