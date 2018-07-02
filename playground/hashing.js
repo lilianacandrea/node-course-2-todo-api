@@ -1,18 +1,38 @@
 // JWTs and HASHING** (SHA256) and SALT
 const {SHA256} = require('crypto-js');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+//hashing a pass using bcrypt
+var password = '123abc!';
+
+//it's an async method. firs param is a callback func, and de sec.is
+// bcrypt.genSalt(10, (err, salt) => {
+//   bcrypt.hash(password, salt, (err, hash) => {
+//     console.log(hash);
+//   });
+// });
+
+var hashPassword = '$2a$10$xj0X1jl98xqU/OOtfd6rPOEwlhyBi1xpq.2qfsTtuByhRjG5XV7tW';
+
+//compare password with hashPassword
+bcrypt.compare(password, hashPassword, (err, res) => {
+  console.log(res);
+});
 
 
-var data = {
-  id: 10
-};
 
-// take as args tha data and the salt hash
-var token = jwt.sign(data, '123abc');
-console.log(token);
 
-var decoded = jwt.verify(token, '123abc');
-console.log('decoded', decoded);
+// var data = {
+//   id: 10
+// };
+//
+// // take as args tha data and the salt hash
+// var token = jwt.sign(data, '123abc');
+// console.log(token);
+//
+// var decoded = jwt.verify(token, '123abc');
+// console.log('decoded', decoded);
 
 
 // var message = 'I am user number 3';

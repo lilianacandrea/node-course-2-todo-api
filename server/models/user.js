@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 // Va stoca shema pentru un user
 // Schema property permite sa creeam o noua schema
@@ -49,8 +50,8 @@ UserSchema.methods.generateAuthToken = function () {
   var access = 'auth';
   var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
 
-  user.tokens.push({access, token});
-
+  // user.tokens.push({access, token});
+user.tokens = user.tokens.concat([{access, token}]);
   return user.save().then(() => {
     return token;
   });
@@ -72,6 +73,24 @@ UserSchema.statics.findByToken = function (token) {
     'tokens.access': 'auth'
   });
 };
+
+// Mongoose middleware
+UserSchema.pre('save', function (next) {
+  var user = this;
+
+ // Verify the passs if is modify
+  if (user.isModified('password')) {
+    // Generate a salt
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(user.password, salt, (err, hash) => {
+        user.password = hash;
+        next();
+      });
+    });
+  } else {
+    next();
+  }
+});
 
 var User = mongoose.model('User', UserSchema);
 
