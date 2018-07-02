@@ -8,6 +8,7 @@ const {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 const port = process.env.PORT;
@@ -144,13 +145,21 @@ app.post('/users', (req, res) => {
   var user = new User(body);
 
   user.save().then(() => {
+    // call and return generateAuthToken()
     return user.generateAuthToken();
   }).then((token) => {
+    // when you prefix a header with "X-" you are creating a custom header which means it's not necessarily a header that HTTP supports by default. It's a gheader thtat you'reusing for our specific purposes in out application
     res.header('x-auth', token).send(user);
   }).catch((e) => {
     res.status(400).send(e);
   })
 });
+
+//private route
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user);
+});
+
 
 app.listen(port, () => {
   console.log(`Started up at port ${port}.`);
