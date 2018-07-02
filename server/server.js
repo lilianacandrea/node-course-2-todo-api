@@ -131,6 +131,27 @@ app.patch('/todos/:id', (req, res) => {
    });
 });
 
+// POST /users
+// Model method
+// It's going to take that JWT token that the user sends in one of their secure requests, vom gasi userul si vom returna that user to the caller.
+// User.findByToken()
+
+// Instance method are called on an individual user like generateAuthToken method
+// generateAuthToken = responsabila pentru adaugarea unui token pentru un user individual, pentru salvarea si returnarea tokenului pe care il vom trimite inapoi la user.
+// user.generateAuthToken()
+app.post('/users', (req, res) => {
+  var body = _.pick(req.body, ['email', 'password']);
+  var user = new User(body);
+
+  user.save().then(() => {
+    return user.generateAuthToken();
+  }).then((token) => {
+    res.header('x-auth', token).send(user);
+  }).catch((e) => {
+    res.status(400).send(e);
+  })
+});
+
 app.listen(port, () => {
   console.log(`Started up at port ${port}.`);
 });
