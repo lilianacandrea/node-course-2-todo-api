@@ -17,9 +17,10 @@ app.use(bodyParser.json());
 
 // POST Request
 // send json to my express app.
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
   var todo = new Todo({
-    text: req.body.text
+    text: req.body.text,
+    _creator: req.user._id
   });
 
   todo.save().then((doc) => {
@@ -30,8 +31,10 @@ app.post('/todos', (req, res) => {
 });
 
 // GET Request
-app.get('/todos', (req, res) => {
-  Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+  Todo.find({
+    _creator: req.user._id
+  }).then((todos) => {
     res.send({todos});
   }, (e) => {
     res.status(400).send(e);
@@ -48,14 +51,17 @@ app.get('/todos', (req, res) => {
     // if no todo - send back 404 with empty body
     // error
     // 400 - and send empty body back
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;
 
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
 
-  Todo.findById(id).then((todo) => {
+  Todo.findOne({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if(!todo) {
       return res.status(404).send();
     }
@@ -77,14 +83,17 @@ app.get('/todos/:id', (req, res) => {
     // error
       // 400 with empty body
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;
 
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
 
-  Todo.findByIdAndRemove(id).then((todo) => {
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
@@ -96,7 +105,7 @@ app.delete('/todos/:id', (req, res) => {
 });
 
 // PATCH - use to update tod items
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;
   // use lodash: pick
   //body has a subset of things that users passed to us. We don't want the user to be able to update anything they choose.
@@ -121,15 +130,15 @@ app.patch('/todos/:id', (req, res) => {
 
   //We make our call to find by id and update with these three steps we are able to successfully update our todos when we make the patch call.
   //new (din mongoose) similar cu returnOriginal (mongoDB)
-   Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
-     if (!todo) {
-       return res.status(404).send();
-     }
+  Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, {$set: body}, {new: true}).then((todo) => {
+      if (!todo) {
+        return res.status(404).send();
+      }
 
-     res.send({todo});
-   }).catch((e) => {
+      res.send({todo});
+    }).catch((e) => {
      res.status(400).send();
-   });
+  });
 });
 
 // POST /users
