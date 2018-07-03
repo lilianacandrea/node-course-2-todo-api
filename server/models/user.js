@@ -57,6 +57,17 @@ user.tokens = user.tokens.concat([{access, token}]);
   });
 };
 
+// Delete the token
+// $pull let's you to remove items from an array that match some criteria
+UserSchema.methods.removeToken = function (token) {
+  var user = this;
+  return user.update({
+    $pull: {
+      tokens: {token}
+    }
+  });
+};
+
 UserSchema.statics.findByToken = function (token) {
   var User = this;
   var decoded;
