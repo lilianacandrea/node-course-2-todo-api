@@ -83,25 +83,25 @@ app.get('/todos/:id', authenticate, (req, res) => {
     // error
       // 400 with empty body
 
-app.delete('/todos/:id', authenticate, (req, res) => {
-  var id = req.params.id;
+app.delete('/todos/:id', authenticate, async (req, res) => {
+  const id = req.params.id;
 
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
-
-  Todo.findOneAndRemove({
-    _id: id,
-    _creator: req.user._id
-  }).then((todo) => {
-    if (!todo) {
-      return res.status(404).send();
-    }
+ try {
+   const todo = await Todo.findOneAndRemove({
+     _id: id,
+     _creator: req.user._id
+   });
+   if (!todo) {
+     return res.status(404).send();
+   }
 
     res.send({todo});
-  }).catch((e) => {
-    res.status(400).send();
-  });
+ } catch (e) {
+   res.status(400).send();
+ }
 });
 
 // PATCH - use to update tod items
@@ -116,7 +116,6 @@ app.patch('/todos/:id', authenticate, (req, res) => {
   }
 
   //update the completedAt property based of the completed property
-
   // checking the completed value and using that value to set completedAt.
   // If a user is setting a todo's completed property to TRUE, we want to set completed that to a time stamp.
   // If they're setting it to FALSE we want to clear that time stamp because that won't be completed.
@@ -149,19 +148,16 @@ app.patch('/todos/:id', authenticate, (req, res) => {
 // Instance method are called on an individual user like generateAuthToken method
 // generateAuthToken = responsabila pentru adaugarea unui token pentru un user individual, pentru salvarea si returnarea tokenului pe care il vom trimite inapoi la user.
 // user.generateAuthToken()
-app.post('/users', (req, res) => {
-  var body = _.pick(req.body, ['email', 'password']);
-  var user = new User(body);
-
-  user.save().then(() => {
-    // call and return generateAuthToken()
-    return user.generateAuthToken();
-  }).then((token) => {
-    // when you prefix a header with "X-" you are creating a custom header which means it's not necessarily a header that HTTP supports by default. It's a gheader thtat you'reusing for our specific purposes in out application
+app.post('/users', async (req, res) => {
+  try {
+    const body = _.pick(req.body, ['email', 'password']);
+    const user = new User(body);
+    await user.save();
+    const token = await user.generateAuthToken();
     res.header('x-auth', token).send(user);
-  }).catch((e) => {
+  } catch (e) {
     res.status(400).send(e);
-  })
+  }
 });
 
 //private route
@@ -169,28 +165,26 @@ app.get('/users/me', authenticate, (req, res) => {
   res.send(req.user);
 });
 
-
 // POST /users/login {email, password}
-app.post('/users/login', (req, res) => {
-  var body = _.pick(req.body, ['email', 'password']);
-
-// verify if user exist with that email and generate a new token
-  User.findByCredentials(body.email, body.password).then((user) => {
-    return user.generateAuthToken().then((token) => {
-      res.header('x-auth', token).send(user);
-    });
-  }).catch((e) => {
+app.post('/users/login', async (req, res) => {
+  try {
+    const body = _.pick(req.body, ['email', 'password']);
+    const user = await User.findByCredentials(body.email, body.password);
+    const token = await user.generateAuthToken();
+    res.header('x-auth', token).send(user);
+  } catch (e) {
     res.status(400).send();
-  });
+  }
 });
 
 // delete an token for an user that logout using a private route
-app.delete('/users/me/token', authenticate, (req, res) => {
-  req.user.removeToken(req.token).then(() => {
+app.delete('/users/me/token', authenticate, async (req, res) => {
+  try {
+    await req.user.removeToken(req.token);
     res.status(200).send();
-  }, () => {
+  } catch (e) {
     res.status(400).send();
-  });
+  }
 });
 
 app.listen(port, () => {
